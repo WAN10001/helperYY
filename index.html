@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>生活小助手丫丫</title>
+  <style>
+    body {
+      font-family: "微软雅黑", sans-serif;
+      background-color: #fff6f6;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #d16c6c;
+    }
+    .quote {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 18px;
+    }
+    .todo {
+      max-width: 400px;
+      margin: auto;
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    input {
+      width: 70%;
+      padding: 8px;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #f4a6a6;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="birthday" style="display:none; text-align:center;">
+  <h1>我最最亲爱的妈妈生日快乐！</h1>
+  <p style="font-size:18px; line-height:1.8;">
+    谢谢你一直以来的付出和温柔。<br>
+    希望以后的每一天，都能被好好对待。<br><br>
+    爱你的孩子 💗
+  </p>
+</div>
+  <div id="mainApp"></div>
+    <h1>生活小助手丫丫</h1>
+
+    <div class="quote" id="quote">
+      今天也要记得照顾好自己 
+    </div>
+
+    <div class="todo">
+      <input id="todoInput" placeholder="把要做的事情写下来吧，我帮你记着">
+      <input id="timeInput" type="time">
+      <button onclick="addTodo()">添加</button>
+      <ul id="todoList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const todoList = document.getElementById("todoList");
+    const input = document.getElementById("todoInput");
+    const timeInput = document.getElementById("timeInput");
+    const quotes = [
+  "每一天都是新的开始，加油！ ",
+  "开开心心最重要哦 ",
+  "身体第一位！今晚要不要早点睡？ ",
+  "今天宜rua灰灰！ ",
+  "今天也辛苦啦！ "
+];
+
+// 根据日期选一句（同一天固定）
+function getTodayQuote() {
+  const today = new Date().toDateString();
+  let sum = 0;
+  for (let i = 0; i < today.length; i++) {
+    sum += today.charCodeAt(i);
+  }
+  return quotes[sum % quotes.length];
+}
+
+// 显示到页面
+document.getElementById("quote").textContent = getTodayQuote();
+
+
+    function loadTodos() {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todoList.innerHTML = "";
+    todos.forEach((todo, index) => {
+      const li = document.createElement("li");
+
+      const span = document.createElement("span");
+      span.textContent = todo.time
+          ? `${todo.text}（${todo.time}）`
+          : todo.text;
+      if (todo.done) {
+        span.style.textDecoration = "line-through";
+        span.style.color = "#aaa";
+      }
+
+      const doneBtn = document.createElement("button");
+      doneBtn.textContent = "完成";
+      doneBtn.onclick = () => toggleDone(index);
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "删除";
+      delBtn.onclick = () => deleteTodo(index);
+
+      li.appendChild(span);
+      li.appendChild(doneBtn);
+      li.appendChild(delBtn);
+      todoList.appendChild(li);
+      setReminder(todo);
+    });
+  }
+
+  function addTodo() {
+  if (!input.value) return;
+
+  const todos = JSON.parse(localStorage.getItem("todos")) || [];
+  todos.push({
+    text: input.value,
+    done: false,
+    time: timeInput.value
+  });
+
+  localStorage.setItem("todos", JSON.stringify(todos));
+  input.value = "";
+  timeInput.value = "";
+  loadTodos();
+}
+
+  function toggleDone(index) {
+    const todos = JSON.parse(localStorage.getItem("todos"));
+    todos[index].done = !todos[index].done;
+    localStorage.setItem("todos", JSON.stringify(todos));
+    loadTodos();
+  }
+
+  function deleteTodo(index) {
+    const todos = JSON.parse(localStorage.getItem("todos"));
+    todos.splice(index, 1);
+    localStorage.setItem("todos", JSON.stringify(todos));
+    loadTodos();
+  }
+
+  function setReminder(todo) {
+  if (!todo.time || todo.done) return;
+
+  const now = new Date();
+  const [hour, minute] = todo.time.split(":");
+  const reminderTime = new Date();
+  reminderTime.setHours(hour, minute, 0, 0);
+
+  const delay = reminderTime - now;
+  if (delay > 0) {
+    setTimeout(() => {
+      alert(`别忘了：${todo.text} `);
+    }, delay);
+  }
+}
+  const BIRTH_MONTH = 2; // 记得每年改成当年的生日对应的阳历日期！
+const BIRTH_DAY = 5;  
+
+function checkBirthday() {
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+
+  if (month === BIRTH_MONTH && day === BIRTH_DAY) {
+    document.getElementById("birthday").style.display = "block";
+    document.getElementById("mainApp").style.display = "none";
+  }
+}
+
+checkBirthday();
+    loadTodos();
+  </script>
+
+</body>
+</html>
